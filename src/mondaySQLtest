@@ -1,0 +1,86 @@
+create type Gender as enum ('Female','Male');
+create type FamilyStatus as enum ('is married','not married');
+create type HouseType as enum ('appartment','two stocke house');
+
+create table owners
+(
+    id         serial primary key,
+    first_name varchar,
+    last_name varchar,
+    email varchar,
+    date_of_birth date,
+    gender Gender
+) ;
+
+create table addresses(id serial primary key ,
+city varchar,
+region varchar,
+street varchar);
+
+create table agencys (id serial primary key ,
+phone_number varchar,
+address_id int references addresses(id));
+
+create table customers (id serial primary key ,
+first_name varchar,
+last_name varchar,
+email varchar,
+date_of_birth date,
+gender Gender,
+nationality varchar,
+family_status FamilyStatus);
+
+
+create table houses(id serial primary key ,
+house_type HouseType,
+price numeric,
+rating float,
+description text,
+room int,
+turniture boolean,
+address_id int references addresses (id),
+owner_id int references owners (id)
+);
+
+
+create table rent_info(id serial primary key ,
+owner_id int references owners(id),
+customer_id int references customers(id),
+agency_id int references agencys(id),
+house_id int references houses(id));
+
+select * from owners;
+
+
+alter table owners
+    add constraint unique_email unique (email);
+
+alter table rent_info
+    add check_in date;
+
+alter table rent_info
+    add check_out date;
+
+alter table customers
+    add constraint uniqueEmail unique (email);
+
+alter table agencys add name varchar;
+
+alter table agencys alter column name set not null;
+
+alter table agencys drop column phone_number;
+
+alter table agencys add phone_number varchar;
+
+alter table agencys add check (length(phone_number) = 13 and phone_number like('+996%') );
+
+alter type FamilyStatus rename to marital_status;
+
+alter type marital_status rename to MaritalStatus;
+
+-- 1. Owner_лердин аттарынын арасынан эн коп символ камтыган owner_ди жана анын уйун(House) чыгар.
+select * from houses h join owners w on h.owner_id = w.id;
+
+select concat(w.first_name,' ',w.last_name) as fullName,h.house_type from houses h join owners w on h.owner_id=w.id where
+-- 2. Уйлордун баалары 1500, 2000 дин аралыгында бар болсо true чыгар, жок болсо false чыгар.
+select count(price) <> 0 as price from houses where price between '1500' and '2000';
